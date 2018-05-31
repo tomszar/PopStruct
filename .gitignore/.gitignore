@@ -1,0 +1,20 @@
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+*.html
+*.pdf
+
+# Data and results
+DataBases/
+Results/
