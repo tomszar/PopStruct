@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#This script will download GenotypeHarmonizer and the corresponding 1000g files used for reference.
-#It will harmonize all samples plink files whithin the folder and output them harmonized with the reference sample
-#To run it in backgroun and output to log file do the following:
+#This script will download GenotypeHarmonizer and the corresponding 1000g files used as reference.
+#It will harmonize all plink files whithin the folder and output them harmonized with the reference sample.
+#To run it in backgroun and output to a log file do the following:
 #cd ~/work/HarmonizeGenos
 #chmod +x 2018-06-Harmonize.sh
 #./2018-06-Harmonize.sh > 2018-06-Harmonize.log 2>&1 &
@@ -32,6 +32,7 @@ do
 	name=`echo "$file" | cut -d'.' -f1`
 	mkdir $name
 	echo "Spliting by chromosome in file $name"
+	
 	for chr in {1..22}
 	do
 		plink --bfile $name --chr $chr --make-bed --out ${name}/${name}_chr${chr}
@@ -51,7 +52,7 @@ do
 #Moving to harmonize directory
 cd ~/work/HarmonizeGenos
 
-java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}/${name}_chr${chr} \
+java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}/${name}_chr${i} \
 --inputType PLINK_BED \
 --ref ~/scratch/1000G/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
 --refType VCF \
