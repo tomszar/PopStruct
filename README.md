@@ -16,6 +16,7 @@ In doing so, we solved unknown strand issues, updated variant IDs, and updated t
 The script is [here](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-Harmonize.sh), which was uploaded to Penn State HPC infrastructure.
 - After all our samples were harmonized, we merged them into three different files: a "dense", "medium", and "sparse" files.
 The "dense" file was made from files with more than 500k SNPs:
+
     - UIUC2013
     - UIUC2014
     - TD2015
@@ -26,9 +27,11 @@ The "dense" file was made from files with more than 500k SNPs:
     - GHPAFF_CV
 
 The "medium" file was made from the ones with more than 300k SNPs,that is from all of the previous ones, plus:
+
     - GHPAFF_Euro
 
 The "sparse" file was made from the ones with more than 100k SNPs,that is from all of the previous ones, plus:
+
     - Axiom Array
     - UC_FEMMES
 
