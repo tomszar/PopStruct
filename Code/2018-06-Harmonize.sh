@@ -7,14 +7,7 @@
 #chmod +x 2018-06-Harmonize.sh
 #./2018-06-Harmonize.sh > 2018-06-Harmonize.log 2>&1 &
 
-#Move to directory
-cd ~/work/harmonize 
-
-#Download and unzip harmonized
-wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
-tar -xzf GenotypeHarmonizer-1.4.20-dist.tar.gz
-
-#Download 1000G in vcf format
+#Download 1000G in vcf format in scratch folder
 cd ~/scratch/1000G
 for chr in {1..22}
 do
@@ -27,16 +20,21 @@ do
 done
 
 #Move to directory
-cd ~/work/harmonize
+cd ~/work/harmonize 
+
+#Download and unzip harmonized
+wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
+tar -xzf GenotypeHarmonizer-1.4.20-dist.tar.gz
 
 #for each file, split them by chromosome and run the harmonizer
 for file in *.bed 
 do
 	name=`echo "$file" | cut -d'.' -f1`
+	mkdir $name
 	echo "Spliting by chromosome in file $name"
 	for chr in {1..22}
 	do
-		plink --bfile $name --chr $chr --make-bed --out ${name}_chr${chr}
+		plink --bfile $name --chr $chr --make-bed --out ${name}/${name}_chr${chr}
 	done
 
 	#Create one job for each file for each chromosome
@@ -45,7 +43,7 @@ do
 		echo "Writing job for $name"
 		echo "#!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=24:00:00
+#PBS -l walltime=02:00:00
 #PBS -l pmem=8gb
 #PBS -A jlt22_b_g_sc_default
 #PBS -j oe
@@ -53,21 +51,21 @@ do
 #Moving to harmonize directory
 cd ~/work/harmonize
 
-java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}_chr${i} \
+java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}/${name}_chr${chr} \
 --inputType PLINK_BED \
 --ref ~/scratch/1000G/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
 --refType VCF \
 --update-id \
 --update-reference-allele \
---output ${name}_chr${i}_harmonized" >> job_${name}_chr${i}.pbs
+--output ${name}/${name}_chr${i}_harmonized" >> job_${name}_chr${i}.pbs
 
 		echo "Submitting job_${name}_chr${i}.pbs"
 		qsub job_${name}_chr${i}.pbs
-		echo "Waiting for next chromosome..."
-		sleep 30m 
+		echo "Waiting 5m for next chromosome..."
+		sleep 3m 
 
 	done
-	echo "Waiting for next file..."
-	sleep 1h
+	echo "Waiting 10m for next file..."
+	sleep 10m
 
 done
