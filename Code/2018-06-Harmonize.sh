@@ -3,7 +3,7 @@
 #This script will download GenotypeHarmonizer and the corresponding 1000g files used for reference.
 #It will harmonize all samples plink files whithin the folder and output them harmonized with the reference sample
 #To run it in backgroun and output to log file do the following:
-#cd ~/work/harmonize
+#cd ~/work/HarmonizeGenos
 #chmod +x 2018-06-Harmonize.sh
 #./2018-06-Harmonize.sh > 2018-06-Harmonize.log 2>&1 &
 
@@ -20,7 +20,7 @@ do
 done
 
 #Move to directory
-cd ~/work/harmonize 
+cd ~/work/HarmonizeGenos
 
 #Download and unzip harmonized
 wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
@@ -49,7 +49,7 @@ do
 #PBS -j oe
 
 #Moving to harmonize directory
-cd ~/work/harmonize
+cd ~/work/HarmonizeGenos
 
 java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}/${name}_chr${chr} \
 --inputType PLINK_BED \
