@@ -44,7 +44,7 @@ do
 		echo "Writing job for $name"
 		echo "#!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=02:00:00
+#PBS -l walltime=06:00:00
 #PBS -l pmem=8gb
 #PBS -A jlt22_b_g_sc_default
 #PBS -j oe
@@ -62,11 +62,11 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 
 		echo "Submitting job_${name}_chr${i}.pbs"
 		qsub job_${name}_chr${i}.pbs
-		echo "Waiting 5m for next chromosome..."
+		echo "Waiting 3m for next chromosome..."
 		sleep 3m 
 
 	done
-	echo "Waiting 10m for next file..."
-	sleep 10m
+	echo "Waiting 5m for next file..."
+	sleep 5m
 
 done
