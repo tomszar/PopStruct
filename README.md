@@ -15,25 +15,24 @@ The script is [here](https://nbviewer.jupyter.org/github/tomszar/PopStruct/blob/
 In doing so, we solved unknown strand issues, updated variant IDs, and updated the reference alleles.
 The script is [here](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-Harmonize.sh), which was uploaded to Penn State HPC infrastructure.
 - After all our samples were harmonized, we merged them into three different files: a "dense", "medium", and "sparse" files.
-- The "dense" file was made from files with more than 500k SNPs:
-    - UIUC2013
-    - UIUC2014
-    - TD2015
-    - TD2016
-    - SA
-    - ADAPT
-    - PSU_FEMMES
-    - GHPAFF_CV
+The script can bee seen [here](https://nbviewer.jupyter.org/github/tomszar/PopStruct/blob/master/Code/2018-06-Merge.ipynb).
+    - The "dense" file was made from files with ~500k SNPs:
+        - UIUC2013
+        - UIUC2014
+        - TD2015
+        - TD2016
+        - SA
+        - ADAPT
+        - PSU_FEMMES
 
-- The "medium" file was made from the ones with more than 300k SNPs,that is from all of the previous ones, plus:
-    - GHPAFF_Euro
+    - The "medium" file was made from the ones with ~300k SNPs,that is from all of the previous ones, plus:
+        - GHPAFF_Euro
+        - GHPAFF_CV
 
-- The "sparse" file was made from the ones with more than 100k SNPs,that is from all of the previous ones, plus:
-    - Axiom Array
-    - UC_FEMMES
+    - The "sparse" file was made from the ones with ~30k SNPs,that is from all of the previous ones, plus:
+        - Axiom Array
+        - UC_FEMMES (note that adding this file, the number of SNPs decreases to ~10k)
 
 - Because fineSTRUCTURE uses haplotype data, the next step was to phase all genotypes.
-To do that, for each of the three files we used [IMPUTE2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#ex10), and the [1000G Phase 3 reference](https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.html). 
-To ease computations, we phased the genoytpes using a sliding window of 5Mb. 
-Because the "sparse" dataset might not contain enough SNPs in a 5Mb sliding window, we constrained the interval size to have at least 200 SNPs.
-If there are less than 200 SNPs in the interval, the script will increase the interval in 1Mb until there are at least 200 SNPs.
+To do that, for each of the three files we used [SHAPEIT](http://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html#home), and the [1000G Phase 3 reference](https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.html). 
+The [script](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-PhasingGenos.sh) was uploaded to Penn State HPC infrastructure. can be seen.
