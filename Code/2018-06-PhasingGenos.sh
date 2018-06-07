@@ -2,7 +2,7 @@
 
 #This script will phase genotypes using SHAPEIT and the 1000G phase 3 as reference samples.
 #Note that this script should be used in the Penn State cluster
-#Remember to have your unphased genotypes in the ~/work/phasing directory, divided by chromosome
+#Remember to have your unphased genotypes in the ~/work/phasing directory, divided by chromosome in plink format
 #Finally, run the following script as follows:
 #cd ~/work/phasing
 #chmod +x 2018-06-PhasingGenos.sh
@@ -33,7 +33,7 @@ do
 	file="$(echo *chr_${i}.bed | cut -d'.' -f1)"
 	echo "#!/bin/bash
 #PBS -l nodes=1:ppn=8
-#PBS -l walltime=48:00:00
+#PBS -l walltime=24:00:00
 #PBS -l pmem=8gb
 #PBS -A jlt22_b_g_sc_default
 #PBS -j oe
