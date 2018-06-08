@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #This script will download GenotypeHarmonizer and the corresponding 1000g files used as reference.
+#Remember to have your files in the ~/work/HarmonizeGenos folder
 #It will harmonize all plink files whithin the folder and output them harmonized with the reference sample.
 #To run it in backgroun and output to a log file do the following:
 #cd ~/work/HarmonizeGenos
