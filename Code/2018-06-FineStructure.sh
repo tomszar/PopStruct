@@ -32,17 +32,17 @@ do
     echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
     echo "#PBS -l walltime=24:00:00" >> $cmdf
     echo "#PBS -l pmem=8gb" >> $cmdf
-	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -A open" >> $cmdf #account for resource consumption (jlt22_b_g_sc_default)
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
 	echo "cd ~/work/FS" >> $cmdf
 	echo "#convert from imputer to chromopainter format" >> $cmdf
-    echo "perl fs-2.1.3/scripts/impute2chromopainter.pl Merge_500k_3612pp_geno01_mind01_founders_unique_chr_${chr}_phased.haps Merge_500k_3612pp_geno01_mind01_founders_unique_chr_${chr}_phased" >> $cmdf
+    echo "perl fs-2.1.3/scripts/impute2chromopainter.pl Merge_500k*_chr_${chr}_phased.haps Merge_500k_chr_${chr}" >> $cmdf
     echo "#add chromosome column to 1000G genetic map downloaded from https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz" >> $cmdf
     echo "awk -v awk_chr=$chr 'NR==1{print \"chr \"\$0} NR>1{print awk_chr\" \"\$0}' ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37.txt > ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt" >> $cmdf
     echo "#convert to recombfile used by fs" >> $cmdf
-    echo "perl fs-2.1.3/scripts/convertrecfile.pl -M hapmap Merge_500k_3612pp_geno01_mind01_founders_unique_chr_${chr}_phased.phase ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt recomb_chr${chr}.recombfile" >> $cmdf
+    echo "perl fs-2.1.3/scripts/convertrecfile.pl -M hapmap Merge_500k_chr_${chr}.phase ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt recomb_chr${chr}.recombfile" >> $cmdf
 done 
 
 for chr in {1..22}
@@ -51,17 +51,46 @@ do
 done
 
 #Create ids file
-awk 'NR>2{print $2}' Merge_500k_3612pp_geno01_mind01_founders_unique_chr_1_phased.sample > Merge_500k_3612pp_geno01_mind01_founders_unique.ids
+awk 'NR>2{print $2}' Merge_500k_*chr_1_phased.sample > Merge_500k.ids
 
 #Now run fs, for all chromosomes, it seems that fs will know how to deal with those
-./fs merge500k_fs.cp -idfile Merge_500k_3612pp_geno01_mind01_founders_unique.ids -phasefiles Merge_500k_3612pp_geno01_mind01_founders_unique_chr_{1..22}_phased.phase -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
+./fs merge500k_fs.cp -idfile Merge_500k.ids -phasefiles Merge_500k_*chr_{1..22}.phase -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
 #Add ./ to the beginning of commandfile1.txt
 awk '{print "./"$0}' merge500k_fs/commandfiles/commandfile1.txt > merge500k_fs/commandfiles/commandfile1.temp && mv merge500k_fs/commandfiles/commandfile1.temp merge500k_fs/commandfiles/commandfile1.txt
 
 #Submit commandfile1.txt commands to HPC
-#Divide in jobs of 100 commands per file (759 jobs)
-split -d -l 100 merge500k_fs/commandfiles/commandfile1.txt merge500k_fs/commandfiles/commandfile1_split.txt -a 3
+#Divide in jobs of 188 commands per file (265 jobs)
+split -d -l 188 merge500k_fs/commandfiles/commandfile1.txt merge500k_fs/commandfiles/commandfile1_split.txt -a 3
 
+mkdir -p fsjobs
+for i in {000..265}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=48:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge500k_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+
+	qsub fsjobs/fsjob_${i}.pbs
+	sleep 2m
+done > fsjobs/fsjobs.log 2>&1 &
+
+#fs-2.1.3/scripts/qsub_run.sh -f merge500k_fs/commandfiles/commandfile1.txt -n 8 -m 42 -w 48 -P -v
+
+#Once the jobs are done, resume the analysis with
+./fs merge500k_fs.cp -go
+
+
+
+
+#####TESTING MEMORY######
 ##Test speed per ind in relation to memory
 mkdir -p fsjobs
 mem=2
@@ -72,7 +101,7 @@ do
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
 	echo "#PBS -l walltime=48:00:00" >> $cmdf
 	echo "#PBS -l pmem=${mem}gb" >> $cmdf
-	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -A open" >> $cmdf # account for resource consumption (jlt22_b_g_sc_default)
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -83,45 +112,3 @@ do
 
 	qsub fsjobs/fsjob_${i}.pbs
 done
-
-
-mkdir -p fsjobs
-for i in {000..759}
-do
-	cmdf="fsjobs/fsjob_${i}.pbs"
-	echo '#!/bin/bash' > $cmdf 
-	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=48:00:00" >> $cmdf
-	echo "#PBS -l pmem=32gb" >> $cmdf
-	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
-	echo "#PBS -j oe" >> $cmdf
-	echo "" >> $cmdf
-	echo "#Moving to directory" >> $cmdf
-	echo "cd ~/work/FS" >> $cmdf
-	echo "" >> $cmdf
-	cat merge500k_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
-
-	qsub fsjobs/fsjob_${i}.pbs
-	sleep 30m
-done > fsjobs/fsjobs.log 2>&1 &
-
-i=000
-cmdf="fsjobs/fsjob_${i}.pbs"
-echo '#!/bin/bash' > $cmdf 
-echo "#PBS -l nodes=1:ppn=4" >> $cmdf 
-echo "#PBS -l walltime=24:00:00" >> $cmdf
-echo "#PBS -l pmem=8gb" >> $cmdf
-echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
-echo "#PBS -j oe" >> $cmdf
-echo "" >> $cmdf
-echo "#Moving to directory" >> $cmdf
-echo "cd ~/work/FS" >> $cmdf
-echo "" >> $cmdf
-cat merge500k_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
-
-qsub fsjobs/fsjob_${i}.pbs
-
-#fs-2.1.3/scripts/qsub_run.sh -f merge500k_fs/commandfiles/commandfile1.txt -n 8 -m 42 -w 48 -P -v
-
-#Once the jobs are done, resume the analysis with
-./fs merge500k_fs.cp -go
