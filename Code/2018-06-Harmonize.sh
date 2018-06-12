@@ -47,7 +47,7 @@ do
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=06:00:00
 #PBS -l pmem=8gb
-#PBS -A jlt22_b_g_sc_default
+#PBS -A open #jlt22_b_g_sc_default or open
 #PBS -j oe
 
 #Moving to harmonize directory
@@ -64,10 +64,10 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 		echo "Submitting job_${name}_chr${i}.pbs"
 		qsub job_${name}_chr${i}.pbs
 		echo "Waiting 3m for next chromosome..."
-		sleep 3m 
+		sleep 30s 
 
 	done
 	echo "Waiting 5m for next file..."
-	sleep 5m
+	sleep 3m
 
 done
