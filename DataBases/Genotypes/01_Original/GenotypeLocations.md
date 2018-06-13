@@ -1,4 +1,4 @@
-# Genotype Locations
+# Genotype file names
 
 Here you can take a look at the samples used in this analysis and their corresponding file name in the Shriver's lab server.
 
