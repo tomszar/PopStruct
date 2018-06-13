@@ -63,11 +63,11 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 
 		echo "Submitting job_${name}_chr${i}.pbs"
 		qsub job_${name}_chr${i}.pbs
-		echo "Waiting 3m for next chromosome..."
+		echo "Waiting 5s for next chromosome..."
 		sleep 5s 
 
 	done
-	echo "Waiting 5m for next file..."
+	echo "Waiting 30m for next file..."
 	sleep 30m
 
 done
