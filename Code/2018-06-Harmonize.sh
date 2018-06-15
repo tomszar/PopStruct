@@ -68,6 +68,6 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 
 	done
 	echo "Waiting 30m for next file..."
-	sleep 30m
+	sleep 20m
 
 done
