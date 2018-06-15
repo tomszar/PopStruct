@@ -45,7 +45,7 @@ do
 		echo "Writing job for $name"
 		echo "#!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=10:00:00
+#PBS -l walltime=15:00:00
 #PBS -l pmem=8gb
 #PBS -A jlt22_b_g_sc_default #jlt22_b_g_sc_default or open
 #PBS -j oe
