@@ -36,7 +36,7 @@ do
 	
 	for chr in {1..22}
 	do
-		plink --bfile $name --chr $chr --make-bed --out ${name}/${name}_chr${chr}
+		plink --bfile $name --chr $chr --make-bed --out ${name}_chr${chr}
 	done
 
 	#Create one job for each file for each chromosome
@@ -53,12 +53,18 @@ do
 #Moving to harmonize directory
 cd ~/work/HarmonizeGenos
 
-java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}/${name}_chr${i} \
+java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}_chr${i} \
 --inputType PLINK_BED \
 --ref ~/scratch/1000G/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
 --refType VCF \
 --update-id \
+--min-ld 0.3 \
+--mafAlign 0.1 \
+--min-variants 3 \
+--variants 100 \
 --update-reference-allele \
+--keep \
+--debug \
 --output ${name}/${name}_chr${i}_harmonized" >> job_${name}_chr${i}.pbs
 
 		echo "Submitting job_${name}_chr${i}.pbs"
