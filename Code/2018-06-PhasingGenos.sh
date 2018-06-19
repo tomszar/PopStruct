@@ -26,6 +26,42 @@ tar -zxvf shapeit.v2.r904.glibcv2.12.linux.tar.gz
 mv shapeit.v2.904.2.6.32-696.18.7.el6.x86_64/bin/shapeit ~/work/phasing/shapeit
 
 #For chr 1 to 22 create the pbs script and submit it to the cluster
+echo ""
+echo "Sarting log output for problematic SNPs..."
+for i in {1..22}
+do
+	echo "Starting chr${i}..."
+	echo "Creating pbs file..."
+	file="$(echo *chr_${i}.bed | cut -d'.' -f1)"
+	#We'll create initial files to remove any problematic SNPs (strand or missing) from the phasing
+	echo "#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=30:00
+#PBS -l pmem=2gb
+#PBS -A jlt22_b_g_sc_default
+#PBS -j oe
+
+#Moving to phasing directory
+cd ~/work/phasing
+
+#Phasing command
+./shapeit -check \
+-B ${file} \
+-M ~/scratch/1000GP_Phase3/genetic_map_chr${i}_combined_b37.txt \
+--input-ref ~/scratch/1000GP_Phase3/1000GP_Phase3_chr${i}.hap.gz ~/scratch/1000GP_Phase3/1000GP_Phase3_chr${i}.legend.gz ~/scratch/1000GP_Phase3/1000GP_Phase3.sample \
+--output-log Phased/${file}_alignments" >> Phased/alignment_chr${i}.pbs
+
+	echo "Submitting check in chr${i}..."
+	qsub Phased/alignment_chr${i}.pbs
+
+	echo "Waiting 1s for next file...."
+	sleep 1s
+done
+
+echo ""
+echo "Starting proper phasing..."
+sleep 8m
+
 for i in {1..22}
 do
 	echo "Starting chr${i}..."
@@ -34,7 +70,7 @@ do
 	echo "#!/bin/bash
 #PBS -l nodes=1:ppn=8
 #PBS -l walltime=24:00:00
-#PBS -l pmem=8gb
+#PBS -l pmem=16gb
 #PBS -A jlt22_b_g_sc_default
 #PBS -j oe
 
@@ -45,13 +81,16 @@ cd ~/work/phasing
 ./shapeit -B ${file} \
 -M ~/scratch/1000GP_Phase3/genetic_map_chr${i}_combined_b37.txt \
 --input-ref ~/scratch/1000GP_Phase3/1000GP_Phase3_chr${i}.hap.gz ~/scratch/1000GP_Phase3/1000GP_Phase3_chr${i}.legend.gz ~/scratch/1000GP_Phase3/1000GP_Phase3.sample \
+--exclude-snp Phased/${file}_alignments.snp.strand.exclude \
 -O Phased/${file}_phased \
+--output-log ${file}_phased.log \
 --force \
 -T 8" >> Phased/phasing_chr${i}.pbs
 
-	echo "Submitting job..."
+	echo "Submitting phasing_chr${i}.pbs job..."
 	qsub Phased/phasing_chr${i}.pbs
 
-	echo "Waiting 1h for next chromosome...\n"
-	sleep 1h
+	echo "Waiting 30m for next chromosome..."
+	echo ""
+	sleep 30m
 done
