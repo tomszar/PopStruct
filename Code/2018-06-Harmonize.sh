@@ -8,7 +8,7 @@
 #chmod +x 2018-06-Harmonize.sh
 #./2018-06-Harmonize.sh > 2018-06-Harmonize.log 2>&1 &
 
-#Download 1000G in vcf format in scratch folder
+#Download 1000G in vcf format to scratch folder
 cd ~/scratch/1000G
 for chr in {1..22}
 do
@@ -32,11 +32,12 @@ for file in *.bed
 do
 	name=`echo "$file" | cut -d'.' -f1`
 	mkdir $name
-	echo "Spliting by chromosome in file $name"
+	mkdir $name"_temp"
+	echo "Spliting file $name by chromosome"
 	
 	for chr in {1..22}
 	do
-		plink --bfile $name --chr $chr --make-bed --out ${name}_chr${chr}
+		plink --bfile $name --chr $chr --make-bed --out ${name}_temp/${name}_chr${chr}
 	done
 
 	#Create one job for each file for each chromosome
@@ -53,7 +54,7 @@ do
 #Moving to harmonize directory
 cd ~/work/HarmonizeGenos
 
-java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}_chr${i} \
+java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}_temp/${name}_chr${i} \
 --inputType PLINK_BED \
 --ref ~/scratch/1000G/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
 --refType VCF \
@@ -73,7 +74,7 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 		sleep 5s 
 
 	done
-	echo "Waiting 30m for next file..."
+	echo "Waiting 20m for next file..."
 	sleep 20m
 
 done
