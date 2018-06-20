@@ -28,21 +28,23 @@ mkdir -p convert
 for chr in {1..22}
 do 
     cmdf="convert/convert_chr${chr}.pbs" 
+    infile="$(echo *chr_${chr}_phased.haps)"
+    outfile="$(echo *chr_${chr}_phased.haps | cut -d'.' -f1)"
     echo "#!/bin/bash" > $cmdf 
     echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
     echo "#PBS -l walltime=24:00:00" >> $cmdf
     echo "#PBS -l pmem=8gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf #account for resource consumption (jlt22_b_g_sc_default)
+	echo "#PBS -A open" >> $cmdf #account for resource consumption (jlt22_b_g_sc_default or open)
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
 	echo "cd ~/work/FS" >> $cmdf
 	echo "#convert from imputer to chromopainter format" >> $cmdf
-    echo "perl fs-2.1.3/scripts/impute2chromopainter.pl Merge_500k*_chr_${chr}_phased.haps Merge_500k_chr_${chr}" >> $cmdf
+    echo "perl fs-2.1.3/scripts/impute2chromopainter.pl ${infile} ${outfile}" >> $cmdf
     echo "#add chromosome column to 1000G genetic map downloaded from https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz" >> $cmdf
     echo "awk -v awk_chr=$chr 'NR==1{print \"chr \"\$0} NR>1{print awk_chr\" \"\$0}' ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37.txt > ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt" >> $cmdf
     echo "#convert to recombfile used by fs" >> $cmdf
-    echo "perl fs-2.1.3/scripts/convertrecfile.pl -M hapmap Merge_500k_chr_${chr}.phase ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt recomb_chr${chr}.recombfile" >> $cmdf
+    echo "perl fs-2.1.3/scripts/convertrecfile.pl -M hapmap ${outfile}.phase ~/scratch/1000GP_Phase3/genetic_map_chr${chr}_combined_b37_hapv.txt recomb_chr${chr}.recombfile" >> $cmdf
 done 
 
 for chr in {1..22}
@@ -51,35 +53,42 @@ do
 done
 
 #Create ids file
-awk 'NR>2{print $2}' Merge_500k_*chr_1_phased.sample > Merge_500k.ids
+awk 'NR>2{print $2}' *chr_1_phased.sample > Merge.ids
 
 #Now run fs, for all chromosomes, it seems that fs will know how to deal with those
-./fs merge500k_fs.cp -idfile Merge_500k.ids -phasefiles Merge_500k_*chr_{1..22}.phase -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
+infiles="$(echo *chr_{1..22}_phased.phase)"
+./fs merge_fs.cp -idfile Merge.ids -phasefiles $infiles -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
 #Add ./ to the beginning of commandfile1.txt
-awk '{print "./"$0}' merge500k_fs/commandfiles/commandfile1.txt > merge500k_fs/commandfiles/commandfile1.temp && mv merge500k_fs/commandfiles/commandfile1.temp merge500k_fs/commandfiles/commandfile1.txt
+awk '{print "./"$0}' merge_fs/commandfiles/commandfile1.txt > merge_fs/commandfiles/commandfile1.temp && mv merge_fs/commandfiles/commandfile1.temp merge_fs/commandfiles/commandfile1.txt
 
 #Submit commandfile1.txt commands to HPC
-#Divide in jobs of 188 commands per file (265 jobs)
-split -d -l 188 merge500k_fs/commandfiles/commandfile1.txt merge500k_fs/commandfiles/commandfile1_split.txt -a 3
+#Divide in jobs of 200 commands per file (326 jobs)
+split -d -l 200 merge_fs/commandfiles/commandfile1.txt merge_fs/commandfiles/commandfile1_split.txt -a 3
 
 mkdir -p fsjobs
-for i in {000..265}
+for i in {000..326}
 do
 	cmdf="fsjobs/fsjob_${i}.pbs"
 	echo '#!/bin/bash' > $cmdf 
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=48:00:00" >> $cmdf
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
 	echo "#PBS -l pmem=8gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
 	echo "cd ~/work/FS" >> $cmdf
 	echo "" >> $cmdf
-	cat merge500k_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+	cat merge_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+	
+	#Submit only 90 jobs (to use only 90 cores), and wait 80 hours till next submision
+	if [ $i == 090 ] || [ $i == 180 ] || [ $i == 270 ]
+	then
+		sleep 80h
+	fi
 
 	qsub fsjobs/fsjob_${i}.pbs
-	sleep 2m
+
 done > fsjobs/fsjobs.log 2>&1 &
 
 #fs-2.1.3/scripts/qsub_run.sh -f merge500k_fs/commandfiles/commandfile1.txt -n 8 -m 42 -w 48 -P -v
