@@ -66,7 +66,8 @@ awk '{print "./"$0}' merge_fs/commandfiles/commandfile1.txt > merge_fs/commandfi
 split -d -l 200 merge_fs/commandfiles/commandfile1.txt merge_fs/commandfiles/commandfile1_split.txt -a 3
 
 mkdir -p fsjobs
-for i in {000..326}
+#Make sets of 89 jobs. Make sure to look for when most of the jobs end, so you can upload the next batch
+for i in {000..089}
 do
 	cmdf="fsjobs/fsjob_${i}.pbs"
 	echo '#!/bin/bash' > $cmdf 
@@ -81,20 +82,184 @@ do
 	echo "" >> $cmdf
 	cat merge_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
 	
-	#Submit only 90 jobs (to use only 90 cores), and wait 80 hours till next submision
-	if [ $i == 090 ] || [ $i == 180 ] || [ $i == 270 ]
-	then
-		sleep 80h
-	fi
-
 	qsub fsjobs/fsjob_${i}.pbs
 
 done > fsjobs/fsjobs.log 2>&1 &
 
-#fs-2.1.3/scripts/qsub_run.sh -f merge500k_fs/commandfiles/commandfile1.txt -n 8 -m 42 -w 48 -P -v
+#Second batch
+for i in {090..179}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+#Third batch
+for i in {180..269}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+#Fourth batch
+for i in {270..326}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile1_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
 
 #Once the jobs are done, resume the analysis with
-./fs merge500k_fs.cp -go
+./fs merge_fs.cp -go
+#An error will appear to run the second stage and a commandfile2.txt file will be created
+
+#Add ./ to the beginning of commandfile2.txt
+awk '{print "./"$0}' merge_fs/commandfiles/commandfile2.txt > merge_fs/commandfiles/commandfile2.temp && mv merge_fs/commandfiles/commandfile2.temp merge_fs/commandfiles/commandfile2.txt
+
+#Submit commandfile2.txt commands to HPC
+#Divide in jobs of 200 commands per file (326 jobs)
+split -d -l 200 merge_fs/commandfiles/commandfile2.txt merge_fs/commandfiles/commandfile2_split.txt -a 3
+
+#remove previous jobs
+rm fsjobs/*
+
+#Make sets of 89 jobs. Make sure to look for when most of the jobs end, so you can upload the next batch
+#It seems that in this stage, each individual takes less than 10 minutes
+for i in {000..089}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+#Second batch
+for i in {090..179}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+#Third batch
+for i in {180..269}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+#Fourth batch
+for i in {270..326}
+do
+	cmdf="fsjobs/fsjob_${i}.pbs"
+	echo '#!/bin/bash' > $cmdf 
+	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+	echo "#PBS -l walltime=100:00:00" >> $cmdf
+	echo "#PBS -l pmem=8gb" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -j oe" >> $cmdf
+	echo "" >> $cmdf
+	echo "#Moving to directory" >> $cmdf
+	echo "cd ~/work/FS" >> $cmdf
+	echo "" >> $cmdf
+	cat merge_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
+	
+	qsub fsjobs/fsjob_${i}.pbs
+
+done > fsjobs/fsjobs.log 2>&1 &
+
+
+#Once the jobs are done, resume the analysis with
+./fs merge_fs.cp -go
+#Now we will run the stage 3 
+cmdf="fsjobs/fsjob_stage3.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=420:00:00" >> $cmdf
+echo "#PBS -l pmem=64gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "./fs merge_fs.cp -s34args:'-X -Y' -makes3 -dos3 -combines3 -go" >> $cmdf
+	
+qsub fsjobs/fsjob_stage3.pbs
+
 
 
 
