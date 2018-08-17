@@ -248,7 +248,7 @@ done > fsjobs/fsjobs.log 2>&1 &
 cmdf="fsjobs/fsjob_stage3.pbs"
 echo '#!/bin/bash' > $cmdf 
 echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-echo "#PBS -l walltime=420:00:00" >> $cmdf
+echo "#PBS -l walltime=500:00:00" >> $cmdf
 echo "#PBS -l pmem=64gb" >> $cmdf
 echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
@@ -260,8 +260,27 @@ echo "./fs merge_fs.cp -s34args:'-X -Y' -makes3 -dos3 -combines3 -go" >> $cmdf
 	
 qsub fsjobs/fsjob_stage3.pbs
 
+#Once the jobs are done, resume the analysis with
+./fs merge_fs.cp -go
+#Add ./ to the beginning of commandfile4.txt
+awk '{print "./"$0}' merge_fs/commandfiles/commandfile4.txt > merge_fs/commandfiles/commandfile4.temp && mv merge_fs/commandfiles/commandfile4.temp merge_fs/commandfiles/commandfile4.txt
+#Now we will run the stage 4
+cmdf="fsjobs/fsjob_stage4.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=420:00:00" >> $cmdf
+echo "#PBS -l pmem=64gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+cat merge_fs/commandfiles/commandfile4.txt >> $cmdf
 
+qsub fsjobs/fsjob_stage4.pbs
 
+#All is done!
 
 
 #####TESTING MEMORY######
