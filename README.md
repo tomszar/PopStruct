@@ -20,6 +20,10 @@ We then ran an MDS on the similarity matrix and used [mclust](https://cran.r-pro
 This second approach performs way faster than the previous one.
 Similar to the previous approach, we generated a "dense" and a "sparse" file.
 
+Finally, both set of samples were LD pruned to generate appropriates files to run on [Admixture](http://www.genetics.ucla.edu/software/admixture/index.html).
+To generate more meaningful results and help on the interpretation we merged our pruned samples with the 1000 Genomes and HGDP datasets. 
+The pipeline for merging those two reference samples can be found [here](https://tomszar.github.io/HGDP_1000G_Merge/)
+
 ## QC assessment
 
 Our QC assessment was done in [plink 1.9](https://www.cog-genomics.org/plink2) in each dataset, both before and after merging across platforms, in the following order:
@@ -36,6 +40,7 @@ After merging platforms, the QC assessment comprised steps 2 to 5.
 ## Merging platforms
 
 Because our datasets were genotyped using different platforms, in both datasets we created two merged files, a "dense", trying to retain ~400k SNPs, and a "sparse" file with ~20k SNPs.
+From both datasets we also created an LD pruned one, using the "pruned" suffix.
 To increase the chances of a successful merge, before attempting to merge the datasets we [harmonized](https://bmcresnotes.biomedcentral.com/articles/10.1186/1756-0500-7-901) our datasets using the [1000 Genomes Phase 3 (1000G)](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/) as reference sample.
 In doing so, we solved unknown strand issues, updated variant IDs, and updated the reference alleles.
 We kept all SNPs from each dataset, and we removed problematic SNPs during the merging steps.
@@ -68,3 +73,4 @@ In the proper phasing procedure, we remove those problematic SNPs.
 2. [Harmonize genotypes](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-Harmonize.sh), was uploaded to Penn State HPC infrastructure
 3. [Merging datasets and QC](https://nbviewer.jupyter.org/github/tomszar/PopStruct/blob/master/Code/2018-06-Merge.ipynb)
 4. [Phasing genotypes](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-PhasingGenos.sh), was uploaded to Penn State HPC infrastructure
+5. [FineStructure analysis](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-FineStructure.sh), was done using Penn state HPC infrastructure
