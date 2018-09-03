@@ -2,11 +2,13 @@
 
 #This script will phase genotypes using SHAPEIT and the 1000G phase 3 as reference samples.
 #Note that this script should be used in the Penn State cluster
-#Remember to have your unphased genotypes in the ~/work/phasing directory, divided by chromosome in plink format
+#Remember to have your unphased genotypes in the same folder as this script, divided by chromosome in plink format
 #Finally, run the following script as follows:
-#cd ~/work/phasing
 #chmod +x 2018-06-PhasingGenos.sh
 #./2018-06-PhasingGenos.sh > 2018-06-PhasingGenos.log 2>&1 &
+
+#Getting the path to this folder
+thisdir=$(pwd)
 
 #Download Genetic map and reference samples for hg 19 coordinates in scratch 
 cd ~/scratch
@@ -16,8 +18,8 @@ if [ ! -f 1000GP_Phase3.tgz ]; then
 	#No need to gunzip hap and legend files
 fi
 
-#Move to work/phasing directory
-cd ~/work/phasing
+#Move to phasing directory
+cd $thisdir
 mkdir Phased
 
 #Download SHAPEIT static version
@@ -26,6 +28,7 @@ tar -zxvf shapeit.v2.r904.glibcv2.12.linux.tar.gz
 mv shapeit.v2.904.2.6.32-696.18.7.el6.x86_64/bin/shapeit ~/work/phasing/shapeit
 
 #For chr 1 to 22 create the pbs script and submit it to the cluster
+#We'll send this to the open queue
 echo ""
 echo "Sarting log output for problematic SNPs..."
 for i in {1..22}
@@ -38,11 +41,11 @@ do
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=30:00
 #PBS -l pmem=2gb
-#PBS -A jlt22_b_g_sc_default
+#PBS -A open #jlt22_b_g_sc_default or open
 #PBS -j oe
 
 #Moving to phasing directory
-cd ~/work/phasing
+cd ${thisdir}
 
 #Phasing command
 ./shapeit -check \
@@ -60,7 +63,7 @@ done
 
 echo ""
 echo "Starting proper phasing..."
-sleep 8m
+sleep 15m
 
 for i in {1..22}
 do
@@ -71,7 +74,7 @@ do
 #PBS -l nodes=1:ppn=8
 #PBS -l walltime=24:00:00
 #PBS -l pmem=16gb
-#PBS -A jlt22_b_g_sc_default
+#PBS -A jlt22_b_g_sc_default #jlt22_b_g_sc_default or open
 #PBS -j oe
 
 #Moving to phasing directory

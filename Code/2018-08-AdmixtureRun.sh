@@ -1,8 +1,9 @@
 #!/bin/bash
+
 #This script will download Admixture software and run it using all plink files in the directory
 #It will calculate admixture using ks from 2 to 12
 #Remember to have this script as well as the genotype files you want to analyze in the same folder
-#To run it in backgroun and output to a log file do the following:
+#To run it in background and output to a log file do the following:
 #chmod +x 2018-08-AdmixtureRun.sh
 #./2018-08-AdmixtureRun.sh > 2018-08-AdmixtureRun.log 2>&1 &
 
