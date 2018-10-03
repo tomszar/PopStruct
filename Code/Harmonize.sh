@@ -4,12 +4,14 @@
 #Remember to have your files in the ~/work/HarmonizeGenos folder
 #It will harmonize all plink files whithin the folder and output them harmonized with the reference sample.
 #To run it in backgroun and output to a log file do the following:
-#cd ~/work/HarmonizeGenos
-#chmod +x 2018-06-Harmonize.sh
-#./2018-06-Harmonize.sh > 2018-06-Harmonize.log 2>&1 &
+#chmod +x Harmonize.sh
+#./Harmonize.sh > Harmonize.log 2>&1 &
+
+#Getting the path to this folder
+thisdir=$(pwd)
 
 #Download 1000G in vcf format to scratch folder
-cd ~/scratch/1000G
+cd ~/scratch
 for chr in {1..22}
 do
 	if [ ! -f ALL.chr${chr}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz ]; then
@@ -21,7 +23,7 @@ do
 done
 
 #Move to directory
-cd ~/work/HarmonizeGenos
+cd $thisdir
 
 #Download and unzip harmonized
 wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
@@ -48,15 +50,15 @@ do
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=24:00:00
 #PBS -l pmem=8gb
-#PBS -A jlt22_b_g_sc_default #jlt22_b_g_sc_default or open
+#PBS -A open #jlt22_b_g_sc_default or open
 #PBS -j oe
 
 #Moving to harmonize directory
-cd ~/work/HarmonizeGenos
+cd ${thisdir}
 
 java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${name}_temp/${name}_chr${i} \
 --inputType PLINK_BED \
---ref ~/scratch/1000G/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
+--ref ~/scratch/ALL.chr${i}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes \
 --refType VCF \
 --update-id \
 --min-ld 0.3 \
@@ -74,7 +76,7 @@ java -jar GenotypeHarmonizer-1.4.20-SNAPSHOT/GenotypeHarmonizer.jar --input ${na
 		sleep 5s 
 
 	done
-	echo "Waiting 20m for next file..."
-	sleep 20m
+	echo "Waiting 15m for next file..."
+	sleep 15m
 
 done
