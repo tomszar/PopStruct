@@ -55,26 +55,26 @@ done
 #Create ids file
 awk 'NR>2{print $2}' *chr_1_phased.sample > Merge.ids
 
-#Now run fs, for all chromosomes, it seems that fs will know how to deal with those
-infiles="$(echo *chr_{1..22}_phased.phase)"
-./fs merge_fs.cp -idfile Merge.ids -phasefiles $infiles -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
+#Now run fs, for a subset of chromosomes, to estimate parameters
+infiles="$(echo *chr_{1,8,12,22}_phased.phase)"
+./fs merge_fs.cp -idfile Merge.ids -phasefiles $infiles -recombfiles recomb_chr{1,8,12,22}.recombfile -hpc 1 -go
 #Add ./ to the beginning of commandfile1.txt
 awk '{print "./"$0}' merge_fs/commandfiles/commandfile1.txt > merge_fs/commandfiles/commandfile1.temp && mv merge_fs/commandfiles/commandfile1.temp merge_fs/commandfiles/commandfile1.txt
 
 #Submit commandfile1.txt commands to HPC
-#Divide in jobs of 200 commands per file (326 jobs)
-split -d -l 200 merge_fs/commandfiles/commandfile1.txt merge_fs/commandfiles/commandfile1_split.txt -a 3
+#Divide in jobs of 120 commands per file (109 jobs)
+split -d -l 120 merge_fs/commandfiles/commandfile1.txt merge_fs/commandfiles/commandfile1_split.txt -a 3
 
 mkdir -p fsjobs
-#Make sets of 89 jobs. Make sure to look for when most of the jobs end, so you can upload the next batch
-for i in {000..089}
+#Run the 87 jobs.
+for i in {000..090}
 do
 	cmdf="fsjobs/fsjob_${i}.pbs"
 	echo '#!/bin/bash' > $cmdf 
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=100:00:00" >> $cmdf
-	echo "#PBS -l pmem=8gb" >> $cmdf
-	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+	echo "#PBS -l walltime=48:00:00" >> $cmdf
+	echo "#PBS -l pmem=16gb" >> $cmdf
+	echo "#PBS -A open" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -85,7 +85,7 @@ do
 	qsub fsjobs/fsjob_${i}.pbs
 
 done > fsjobs/fsjobs.log 2>&1 &
-
+	
 #Second batch
 for i in {090..179}
 do

@@ -1,0 +1,109 @@
+---
+title: "Export of final file from population Structure analysis"
+output: html_document
+---
+
+Here we will load, merge, and transform datasets from different places and export them into a single file. 
+We will merge population information from reference samples, svd from IBD matrix from adapt and reference samples, and clusters from FineStructure for adapt samples.
+
+## Preliminaries
+
+Loading libraries
+
+```{r load libraries}
+library(tidyverse)
+library(rsvd)
+```
+
+Loading databases
+
+```{r databases, warning=FALSE}
+#Opening cm matrix
+setwd('..')
+path <- getwd()
+setwd(paste(path, "/Results/RefinedIBD/merge_dense_phenos_geno_maf_hwe_mind01_ref", sep = ""))
+cm <- read.csv("cMmatrix.txt", row.names = 1)
+
+#Opening popinfo
+setwd(paste(path, "/DataBases/PopInfo", sep = ""))
+pops_hgdp <- read_delim("SampleInformation.txt", delim = "\t")[,c(1,3,5)]
+colnames(pops_hgdp) <- c("ID", "pop", "super_pop")
+
+pops_100g <- read_delim("integrated_call_samples_v3.20130502.ALL.panel", delim = "\t", col_types = cols(
+  X1 = col_character(),
+  X2 = col_character(),
+  X3 = col_character()
+))[,c(1:3)]
+colnames(pops_100g)[1] <- c("ID")
+
+#Changing the hgdp id names
+for (i in 1:dim(pops_hgdp)[1] ) {
+  nint   <- nchar(pops_hgdp[i,1])
+  nzeros <- paste(integer(5-nint), collapse="")
+  pops_hgdp[i,1] <- paste("HGDP", nzeros, pops_hgdp[i,1], sep = "")
+}
+pops <- bind_rows(pops_100g, pops_hgdp)
+
+#Changing the HGDP super_pop
+pops$super_pop[pops$super_pop == "AFRICA"]      <- "AFR"
+pops$super_pop[pops$super_pop == "AMERICA"]     <- "AMR"
+pops$super_pop[pops$super_pop == "EAST_ASIA"]   <- "EAS"
+pops$super_pop[pops$super_pop == "EUROPE"]      <- "EUR"
+pops$super_pop[pops$super_pop == "MIDDLE_EAST"] <- "MDE"
+pops$super_pop[pops$super_pop == "OCEANIA"]     <- "OCE"
+pops$super_pop[pops$super_pop == "CENTRAL_SOUTH_ASIA"] <- "SAS"
+
+#Generating final pop file
+pops_total <- as_tibble(rownames(cm)) %>% rename(ID = value) %>% left_join(pops, by = "ID") %>%
+                mutate(pop = ifelse(is.na(pop), "ADAPT", pop)) %>% 
+                mutate(super_pop = ifelse(is.na(super_pop), "ADAPT", super_pop))
+   
+#Read finestructure clusters
+setwd(paste(path, "/Results/FineStructure", sep = ""))
+fsclust <- read_delim("fs_clust.csv", delim=",", col_names=FALSE )
+fsclust <- fsclust %>% mutate(X2 = as.factor(X2))
+colnames(fsclust) <- c("ID", paste("k", 2:10, sep=""))
+
+#Add fsgroup var to pops_total
+pops_total <- pops_total %>% left_join(fsclust, by ="ID")
+```
+
+## Transformation and merging
+
+Transforming IBD matrix
+
+```{r transforming matrix}
+#Getting the sqrt
+cm <- sqrt(cm)
+
+#Getting distance matrix
+cm <- max(cm, na.rm=T) - cm
+diag(cm) <- 0
+
+#Normalizing? (substracting mean matrix value, look at Lawson and Falush 2012)
+cm <- cm - mean(as.matrix(cm)[lower.tri(cm)])
+diag(cm) <- 0
+```
+
+SVD from IBD matrix
+
+We will run a randomized svd (rsvd) on the whole dataset. 
+
+```{r svd}
+#Running rsvd on whole dataset
+set.seed(100)
+sv <- rsvd(cm, 100)
+u  <- sv$u
+rownames(u) <- rownames(cm) 
+colnames(u) <- paste("PC", seq(1:ncol(u)), sep="")
+u <- as_tibble(u, rownames = "ID")
+u <- u %>% left_join(pops_total, by = "ID")
+```
+
+Exporting final database
+
+```{r write table}
+setwd(paste(path, "/Results/FineStructure", sep = ""))
+write_csv(u, "IBD_FS.csv")
+```
+
