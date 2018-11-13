@@ -1,11 +1,12 @@
 #!/bin/bash
 
-#This script will download GenotypeHarmonizer and the corresponding 1000g files used as reference.
-#Remember to have your files in the ~/work/HarmonizeGenos folder
-#It will harmonize all plink files whithin the folder and output them harmonized with the reference sample.
-#To run it in backgroun and output to a log file do the following:
-#chmod +x Harmonize.sh
-#./Harmonize.sh > Harmonize.log 2>&1 &
+#This script will download GenotypeHarmonizer and the corresponding 1000g files used as reference,
+#it will run GenotypeHarmonizer on all plink binary files (bim, bed, fam), and output them harmonized.
+#Usage:
+#    - Place your plink binary files in the same folder as this script
+#    - To run it in background and output to a log file run the following code in the console:
+#        $ chmod +x Harmonize.sh
+#        $ ./Harmonize.sh > Harmonize.log 2>&1 &
 
 #Getting the path to this folder
 thisdir=$(pwd)
@@ -22,10 +23,10 @@ do
 	fi	
 done
 
-#Move to directory
+#Move to harmonize directory
 cd $thisdir
 
-#Download and unzip harmonized
+#Download and unzip genotype harmonizer
 wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
 tar -xzf GenotypeHarmonizer-1.4.20-dist.tar.gz
 
