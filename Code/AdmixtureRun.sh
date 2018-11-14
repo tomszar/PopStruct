@@ -27,7 +27,7 @@ do
 
 cd ${thisdir}
 
-admixture_linux-1.3.0/admixture --cv -j4 ${file} ${k}" >> job_${file}_k${k}.pbs #Creating job to run admixture
+admixture_linux-1.3.0/admixture --cv -j6 ${file} ${k}" >> job_${file}_k${k}.pbs #Creating job to run admixture
 	qsub job_${file}_k${k}.pbs
 
 	done
