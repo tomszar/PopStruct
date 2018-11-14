@@ -1,0 +1,55 @@
+---
+title: "Generation of pop information file for the reference samples"
+output: html_document
+---
+
+Here we will load the population information for the reference samples and generate a consolidated file
+
+## Preliminaries
+
+Loading libraries
+
+```{r load libraries}
+library(tidyverse)
+```
+
+Loading databases
+
+```{r databases, warning=FALSE}
+#Opening cm matrix
+setwd('..')
+path <- getwd()
+
+#Opening popinfo
+setwd(paste(path, "/DataBases/PopInfo", sep = ""))
+pops_hgdp <- read_delim("SampleInformation.txt", delim = "\t")[,c(1,3,5)]
+colnames(pops_hgdp) <- c("ID", "pop", "super_pop")
+
+pops_100g <- read_delim("integrated_call_samples_v3.20130502.ALL.panel", delim = "\t", col_types = cols(
+  X1 = col_character(),
+  X2 = col_character(),
+  X3 = col_character()
+))[,c(1:3)]
+colnames(pops_100g)[1] <- c("ID")
+
+#Changing the hgdp id names
+for (i in 1:dim(pops_hgdp)[1] ) {
+  nint   <- nchar(pops_hgdp[i,1])
+  nzeros <- paste(integer(5-nint), collapse="")
+  pops_hgdp[i,1] <- paste("HGDP", nzeros, pops_hgdp[i,1], sep = "")
+}
+pops <- bind_rows(pops_100g, pops_hgdp)
+
+#Changing the HGDP super_pop
+pops$super_pop[pops$super_pop == "AFRICA"]      <- "AFR"
+pops$super_pop[pops$super_pop == "AMERICA"]     <- "AMR"
+pops$super_pop[pops$super_pop == "EAST_ASIA"]   <- "EAS"
+pops$super_pop[pops$super_pop == "EUROPE"]      <- "EUR"
+pops$super_pop[pops$super_pop == "MIDDLE_EAST"] <- "MDE"
+pops$super_pop[pops$super_pop == "OCEANIA"]     <- "OCE"
+pops$super_pop[pops$super_pop == "CENTRAL_SOUTH_ASIA"] <- "SAS"
+
+#Saving pop file
+setwd(paste(path, "/DataBases/PopInfo", sep = ""))
+write_csv(pops, "Pops.csv")
+```
