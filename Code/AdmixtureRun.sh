@@ -9,7 +9,7 @@
 #		$ ./AdmixtureRun.sh > AdmixtureRun.log 2>&1 &
 
 thisdir=$(pwd)
-wget http://www.genetics.ucla.edu/software/admixture/binaries/admixture_linux-1.3.0.tar.gz
+wget http://software.genetics.ucla.edu/admixture/binaries/admixture_linux-1.3.0.tar.gz
 tar -xzf *.tar.gz
 echo $thisdir
 
