@@ -289,4 +289,6 @@ do
 
 done > fsjobs/fsjobs.log 2>&1 &
 
+#Once you have a file with the subset of populations, generate the popidfile
+./fs fs -X -Y -e popidfile total_fs_linked.chunkcounts.out total_fs/stage4/total_fs_linked_tree.xml PopID_FS.csv
 #All is done!
