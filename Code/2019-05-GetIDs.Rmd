@@ -1,0 +1,47 @@
+---
+title: Get IDs from genotype datasets
+output:
+  html_document: default
+---
+
+Here we will open and save the IDs from all the genotype platforms. 
+We will use the .fam file to do that
+
+Load libraries
+
+```{r libraries}
+library(tidyverse)
+```
+
+Setting folders and creating ID vector
+
+```{r databases, warning=FALSE}
+setwd('..')
+path <- getwd()
+
+setwd(paste(path, "/DataBases/Genotypes/01_Original", sep = ""))
+filelist <- list.files(pattern = "*.fam")
+
+IDs <- c()
+for(i in filelist){
+  fam <- read_delim(i, delim = " ", col_names = F, col_types = cols(X2 = col_character()))
+  IDs <- c(IDs, fam$X2)
+}
+
+```
+
+Saving file
+
+```{r saving}
+setwd(paste(path, "/Results", sep = ""))
+
+write_csv(as.data.frame(IDs), "total_genotype_ids.txt", col_names = F)
+```
+
+
+
+## Session information
+
+```{r}
+sessionInfo()
+```
