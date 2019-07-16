@@ -21,8 +21,8 @@ do
 		echo "#!/bin/bash
 #PBS -l nodes=1:ppn=6
 #PBS -l walltime=48:00:00
-#PBS -l pmem=16gb
-#PBS -A open #jlt22_b_g_sc_default or open
+#PBS -l pmem=32gb
+#PBS -A jlt22_b_g_sc_default #jlt22_b_g_sc_default or open
 #PBS -j oe
 
 cd ${thisdir}
@@ -32,3 +32,6 @@ admixture_linux-1.3.0/admixture --cv -j6 ${file} ${k}" >> job_${file}_k${k}.pbs 
 
 	done
 done
+
+#To see the CV run: 
+#grep -h CV *.pbs.* > CVs.txt

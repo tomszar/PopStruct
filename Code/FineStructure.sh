@@ -62,7 +62,7 @@ infiles="$(echo *chr_{1,8,12,22}_phased.phase)"
 awk '{print "./"$0}' merge_fs/commandfiles/commandfile1.txt > merge_fs/commandfiles/commandfile1.temp && mv merge_fs/commandfiles/commandfile1.temp merge_fs/commandfiles/commandfile1.txt
 
 #Submit commandfile1.txt commands to HPC
-#Divide in jobs of 85 commands per file (178 jobs)
+#Divide in jobs of 85 commands per file (128 jobs)
 split -d -l 85 merge_fs/commandfiles/commandfile1.txt merge_fs/commandfiles/commandfile1_split.txt -a 3
 
 mkdir -p fsjobs
@@ -87,7 +87,7 @@ do
 done > fsjobs/fsjobs.log 2>&1 &
 	
 #Second batch
-for i in {091..178}
+for i in {091..128}
 do
 	cmdf="fsjobs/fsjob_${i}.pbs"
 	echo '#!/bin/bash' > $cmdf 
@@ -110,7 +110,7 @@ done > fsjobs/fsjobs.log 2>&1 &
 ./fs merge_fs.cp -go
 #An error will appear to run the second stage and a commandfile2.txt file will be created
 #Inferred values will show up, in this case
-#Inferred Ne=136.7 and mu=0.000996525
+#Inferred Ne=183.844 and mu=0.000778592
 
 #Now we will write the stage 2 with the whole sample, and the previous inferred parameters
 #Setting new job
@@ -118,14 +118,14 @@ infiles="$(echo *chr_{1..22}_phased.phase)"
 ./fs total_fs.cp -idfile Merge.ids -phasefiles $infiles -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
 
 #Jumping to stage 2 with inferred parameters
-./fs total_fs.cp -Neinf 136.7 -muinf 0.000996525 -makes2 -writes2 -go
+./fs total_fs.cp -Neinf 183.844 -muinf 0.000778592 -makes2 -writes2 -go
 
 #Add ./ to the beginning of commandfile2.txt
 awk '{print "./"$0}' total_fs/commandfiles/commandfile2.txt > total_fs/commandfiles/commandfile2.temp && mv total_fs/commandfiles/commandfile2.temp total_fs/commandfiles/commandfile2.txt
 
 #Submit commandfile2.txt commands to HPC
-#Divide in jobs of 250 commands per file (332 jobs)
-split -d -l 250 total_fs/commandfiles/commandfile2.txt total_fs/commandfiles/commandfile2_split.txt -a 3
+#Divide in jobs of 350 commands per file (171 jobs)
+split -d -l 350 total_fs/commandfiles/commandfile2.txt total_fs/commandfiles/commandfile2_split.txt -a 3
 
 #remove previous jobs
 rm fsjobs/*
@@ -139,7 +139,7 @@ do
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
 	echo "#PBS -l walltime=48:00:00" >> $cmdf
 	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -152,14 +152,14 @@ do
 done > fsjobs/fsjobs.log 2>&1 &
 
 #Second batch
-for i in {096..186}
+for i in {096..171}
 do
 	cmdf="fsjobs/fsjob_${i}.pbs"
 	echo '#!/bin/bash' > $cmdf 
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
 	echo "#PBS -l walltime=48:00:00" >> $cmdf
 	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -171,53 +171,14 @@ do
 
 done > fsjobs/fsjobs.log 2>&1 &
 
-#Third batch
-for i in {187..277}
-do
-	cmdf="fsjobs/fsjob_${i}.pbs"
-	echo '#!/bin/bash' > $cmdf 
-	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=48:00:00" >> $cmdf
-	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
-	echo "#PBS -j oe" >> $cmdf
-	echo "" >> $cmdf
-	echo "#Moving to directory" >> $cmdf
-	echo "cd ~/work/FS" >> $cmdf
-	echo "" >> $cmdf
-	cat total_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
-	
-	qsub fsjobs/fsjob_${i}.pbs
-
-done > fsjobs/fsjobs.log 2>&1 &
-
-#Fourth batch, and last
-for i in {278..332}
-do
-	cmdf="fsjobs/fsjob_${i}.pbs"
-	echo '#!/bin/bash' > $cmdf 
-	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=48:00:00" >> $cmdf
-	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
-	echo "#PBS -j oe" >> $cmdf
-	echo "" >> $cmdf
-	echo "#Moving to directory" >> $cmdf
-	echo "cd ~/work/FS" >> $cmdf
-	echo "" >> $cmdf
-	cat total_fs/commandfiles/commandfile2_split.txt${i} >> $cmdf
-	
-	qsub fsjobs/fsjob_${i}.pbs
-
-done > fsjobs/fsjobs.log 2>&1 &
 
 #Once the jobs are done, merge stage2
 cmdf="fsjobs/fsjob_merge2.pbs"
 echo '#!/bin/bash' > $cmdf 
-echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l nodes=1:ppn=2" >> $cmdf 
 echo "#PBS -l walltime=48:00:00" >> $cmdf
 echo "#PBS -l pmem=64gb" >> $cmdf
-echo "#PBS -A open" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
 echo "" >> $cmdf
 echo "#Moving to directory" >> $cmdf
@@ -228,67 +189,87 @@ echo "./fs total_fs.cp -combines2 -go" >> $cmdf
 qsub fsjobs/fsjob_merge2.pbs
 
 ####STAGE 3####
-#There is only one command for stage 3 written, (mcmc runs in 68 hours)
+#There is only one command for stage 3 written, (mcmc runs in ~168 hours to start writing)
 cmdf="fsjobs/fsjob_stage3.pbs"
 echo '#!/bin/bash' > $cmdf 
-echo "#PBS -l nodes=1:ppn=2" >> $cmdf 
-echo "#PBS -l walltime=500:00:00" >> $cmdf
-echo "#PBS -l pmem=64gb" >> $cmdf
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=600:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
 echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
 echo "" >> $cmdf
 echo "#Moving to directory" >> $cmdf
 echo "cd ~/work/FS" >> $cmdf
 echo "" >> $cmdf
-echo "./fs total_fs.cp -s34args:'-X -Y' -makes3 -dos3 -combines3 -go" >> $cmdf
+echo "./fs total_fs.cp -s34args:'-X -Y' -s3iters 2000000 -makes3 -dos3 -go" >> $cmdf
 #run the job
 qsub fsjobs/fsjob_stage3.pbs
 
-#In parallel do greedy fs instead
-cmdf="fsjobs/fsjob_greedyfs.pbs"
+#The first command from the previous command is 
+#./fs -s 1 -X -Y -x 1000000 -y 1000000 -z 100 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc.xml
+
+#Doing this in parallel two independent mcmc runs
+cmdf="fsjobs/fsjob_stage3_1.pbs"
 echo '#!/bin/bash' > $cmdf 
-echo "#PBS -l nodes=1:ppn=2" >> $cmdf 
-echo "#PBS -l walltime=48:00:00" >> $cmdf
-echo "#PBS -l pmem=64gb" >> $cmdf
-echo "#PBS -A open" >> $cmdf
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=700:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
 echo "" >> $cmdf
 echo "#Moving to directory" >> $cmdf
 echo "cd ~/work/FS" >> $cmdf
 echo "" >> $cmdf
-echo "fs-2.1.3/scripts/finestructuregreedy.sh -f ~/work/FS/fs -a 'fs -X -Y' total_fs_linked.chunkcounts.out total_fs_linked.greedy_outputfile.xml" >> $cmdf
+echo "./fs finestructure -s 1 -X -Y -x 1000000 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage3_1.pbs
+
+cmdf="fsjobs/fsjob_stage3_2.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=700:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "./fs finestructure -s 2 -X -Y -x 1000000 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s2.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage3_2.pbs
+
+#In parallel do greedy fs instead
+cmdf="fsjobs/fsjob_greedyfs.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=48:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "fs-2.1.3/scripts/finestructuregreedy.sh -f ~/work/FS/fs -a 'fs -X -Y' -x 100000 total_fs_linked.chunkcounts.out total_fs_linked.greedy_outputfile.xml" >> $cmdf
 
 qsub fsjobs/fsjob_greedyfs.pbs
 
 ####STAGE 4####
-#write commands for stage 4
-#Once the jobs are done, resume the analysis with
-./fs total_fs.cp -go
-#Add ./ to the beginning of commandfile4.txt
-awk '{print "./"$0}' total_fs/commandfiles/commandfile4.txt > total_fs/commandfiles/commandfile4.temp && mv total_fs/commandfiles/commandfile4.temp total_fs/commandfiles/commandfile4.txt
-#Divide in jobs of 1 commands per file (2 jobs)
-split -d -l 1 total_fs/commandfiles/commandfile4.txt total_fs/commandfiles/commandfile4_split.txt -a 1
+#Construct the tree
+cmdf="fsjobs/fsjob_stage4.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=100:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "./fs finestructure -s 124 -X -Y -x 100000 -m T -t 100000 -k 2 -T 1 -v total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1.xml total_fs_linked.tree.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage4.pbs
 
-#Now we will run the stage 4
-for i in {0..1}
-do
-	cmdf="fsjobs/fsjob_stage4_${i}.pbs"
-	echo '#!/bin/bash' > $cmdf 
-	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-	echo "#PBS -l walltime=400:00:00" >> $cmdf
-	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
-	echo "#PBS -j oe" >> $cmdf
-	echo "" >> $cmdf
-	echo "#Moving to directory" >> $cmdf
-	echo "cd ~/work/FS" >> $cmdf
-	echo "" >> $cmdf
-	cat total_fs/commandfiles/commandfile4_split.txt${i} >> $cmdf
-	
-	qsub fsjobs/fsjob_stage4_${i}.pbs
-
-done > fsjobs/fsjobs.log 2>&1 &
-
-#Once you have a file with the subset of populations, generate the popidfile
-./fs fs -X -Y -e popidfile total_fs_linked.chunkcounts.out total_fs/stage4/total_fs_linked_tree.xml PopID_FS.csv
 #All is done!
