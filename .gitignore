@@ -18,3 +18,5 @@
 # Data and results
 DataBases/
 Results/
+
+*.pyc
