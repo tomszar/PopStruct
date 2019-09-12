@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+#This script will take the FS clustering dendrogram and transform it into a matrix to be supplied to the scipy pipeline
+
+#Importing libraries
 import pandas as pd
 import numpy as np
 from ete3 import ClusterTree, TreeStyle, Tree
@@ -24,11 +27,12 @@ leaves = dendtree.get_leaf_names()
 n = len(leaves)
 dmat = np.zeros((n,n))
 
+#Generate the matrix
 for l1,l2 in combinations(leaves,2):
     d = dendtree.get_distance(l1,l2)
     dmat[leaves.index(l1),leaves.index(l2)] = dmat[leaves.index(l2),leaves.index(l1)] = d
     
-schlink = sch.linkage(scipy.spatial.distance.squareform(dmat),method='average',metric='euclidean')
+schlink = sch.linkage(scipy.spatial.distance.squareform(dmat),method='average',metric='euclidean', optimal_ordering=True)
 np.savetxt('DistMat_fromFS.txt', schlink, fmt='%f')
 
 #To load
