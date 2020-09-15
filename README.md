@@ -33,5 +33,7 @@ We kept all SNPs from each dataset, and we removed problematic SNPs during the m
 ## Pipeline scripts
 
 1. [Initial dataset split and QC](https://nbviewer.jupyter.org/github/tomszar/PopStruct/blob/master/Code/2018-06-QC.ipynb)
-2. [Harmonize genotypes](https://github.com/tomszar/PopStruct/blob/master/Code/2018-06-Harmonize.sh), was uploaded to Penn State HPC infrastructure
+2. [Harmonize genotypes](https://github.com/tomszar/PopStruct/blob/master/Code/Harmonize.sh), was uploaded to Penn State HPC infrastructure
 3. [Merging datasets and QC](https://nbviewer.jupyter.org/github/tomszar/PopStruct/blob/master/Code/2018-06-Merge.ipynb)
+4. [Phasing genotypes](https://github.com/tomszar/PopStruct/blob/master/Code/PhasingGenos.sh), using Penn State HPC infrastructure 
+5. [FineStructure](https://github.com/tomszar/PopStruct/blob/master/Code/FineStructure.sh), using Penn State HPC infrastructure 
