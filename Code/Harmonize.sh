@@ -30,6 +30,10 @@ cd $thisdir
 wget -q http://www.molgenis.org/downloads/GenotypeHarmonizer/GenotypeHarmonizer-1.4.20-dist.tar.gz
 tar -xzf GenotypeHarmonizer-1.4.20-dist.tar.gz
 
+#Download and unzip plink
+wget -q http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20200616.zip
+unzip plink_linux_x86_64_20200616.zip
+
 #for each file, split them by chromosome and run the harmonizer
 for file in *.bed 
 do
@@ -40,7 +44,7 @@ do
 	
 	for chr in {1..22}
 	do
-		plink --bfile $name --chr $chr --make-bed --out ${name}_temp/${name}_chr${chr}
+		./plink --bfile $name --chr $chr --make-bed --out ${name}_temp/${name}_chr${chr}
 	done
 
 	#Create one job for each file for each chromosome
