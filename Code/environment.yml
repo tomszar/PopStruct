@@ -4,12 +4,13 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - _libgcc_mutex=0.1=main
   - attrs=19.1.0=py_0
   - backcall=0.1.0=py_0
   - blas=1.0=mkl
   - bleach=3.1.0=py_0
-  - ca-certificates=2019.3.9=hecc5488_0
-  - certifi=2019.3.9=py37_0
+  - ca-certificates=2020.6.20=hecda079_0
+  - certifi=2020.6.20=py37hc8dfbb8_0
   - decorator=4.4.0=py_0
   - defusedxml=0.5.0=py_1
   - entrypoints=0.3=py37_1000
@@ -29,13 +30,16 @@ dependencies:
   - libgcc-ng=8.2.0=hdf63c60_1
   - libgfortran=3.0.0=1
   - libgfortran-ng=7.3.0=hdf63c60_0
+  - libpng=1.6.37=hed695b0_2
   - libsodium=1.0.16=h14c3975_1001
   - libstdcxx-ng=8.2.0=hdf63c60_1
+  - libuuid=2.32.1=h14c3975_1000
   - markupsafe=1.1.1=py37h14c3975_0
   - mistune=0.8.4=py37h14c3975_1000
   - mkl=2018.0.3=1
   - mkl_fft=1.0.6=py37h7dd41cf_0
   - mkl_random=1.0.1=py37h4414c95_1
+  - mysql-connector-c=6.1.11=h876a3cc_1006
   - nbconvert=5.5.0=py_0
   - nbformat=4.4.0=py_1
   - ncurses=6.1=hf484d3e_0
@@ -43,7 +47,7 @@ dependencies:
   - numpy=1.15.4=py37h1d66e8a_0
   - numpy-base=1.15.4=py37h81de0dd_0
   - openblas=0.2.20=8
-  - openssl=1.1.1b=h14c3975_1
+  - openssl=1.1.1g=h516909a_1
   - pandas=0.23.4=py37h04863e7_0
   - pandoc=2.7.2=0
   - pandocfilters=1.4.2=py_1
@@ -59,6 +63,7 @@ dependencies:
   - pyrsistent=0.15.1=py37h516909a_0
   - python=3.7.1=h0371630_3
   - python-dateutil=2.7.5=py37_0
+  - python_abi=3.7=1_cp37m
   - pytz=2018.7=py37_0
   - pyzmq=18.0.1=py37hc4ba49a_1
   - readline=7.0=h7b6447c_5
@@ -66,11 +71,14 @@ dependencies:
   - setuptools=40.5.0=py37_0
   - six=1.11.0=py37_1
   - sqlite=3.25.2=h7b6447c_0
+  - tbb=2020.1=hc9558a2_0
+  - tbb4py=2020.1=py37hc9558a2_0
   - terminado=0.8.2=py37_0
   - testpath=0.4.2=py_1001
   - tk=8.6.8=hbc83047_0
   - tornado=6.0.2=py37h516909a_0
   - traitlets=4.3.2=py37_1000
+  - ucsc-liftover=377=h446ed27_2
   - wcwidth=0.1.7=py_1
   - webencodings=0.5.1=py_1
   - wheel=0.32.2=py37_0
