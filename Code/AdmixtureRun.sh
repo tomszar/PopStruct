@@ -9,7 +9,7 @@
 #		$ ./AdmixtureRun.sh > AdmixtureRun.log 2>&1 &
 
 thisdir=$(pwd)
-wget http://software.genetics.ucla.edu/admixture/binaries/admixture_linux-1.3.0.tar.gz
+wget http://dalexander.github.io/admixture/binaries/admixture_linux-1.3.0.tar.gz
 tar -xzf *.tar.gz
 echo $thisdir
 
@@ -27,7 +27,7 @@ do
 
 cd ${thisdir}
 
-admixture_linux-1.3.0/admixture --cv -j6 ${file} ${k}" >> job_${file}_k${k}.pbs #Creating job to run admixture
+dist/admixture_linux-1.3.0/admixture --cv -j6 ${file} ${k}" >> job_${file}_k${k}.pbs #Creating job to run admixture
 	qsub job_${file}_k${k}.pbs
 
 	done
