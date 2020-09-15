@@ -74,7 +74,7 @@ do
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
 	echo "#PBS -l walltime=48:00:00" >> $cmdf
 	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -94,7 +94,7 @@ do
 	echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
 	echo "#PBS -l walltime=48:00:00" >> $cmdf
 	echo "#PBS -l pmem=16gb" >> $cmdf
-	echo "#PBS -A open" >> $cmdf
+	echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 	echo "#PBS -j oe" >> $cmdf
 	echo "" >> $cmdf
 	echo "#Moving to directory" >> $cmdf
@@ -110,7 +110,7 @@ done > fsjobs/fsjobs.log 2>&1 &
 ./fs merge_fs.cp -go
 #An error will appear to run the second stage and a commandfile2.txt file will be created
 #Inferred values will show up, in this case
-#Inferred Ne=183.844 and mu=0.000778592
+#Inferred Ne=185.127 and mu=0.000768334
 
 #Now we will write the stage 2 with the whole sample, and the previous inferred parameters
 #Setting new job
@@ -118,7 +118,7 @@ infiles="$(echo *chr_{1..22}_phased.phase)"
 ./fs total_fs.cp -idfile Merge.ids -phasefiles $infiles -recombfiles recomb_chr{1..22}.recombfile -hpc 1 -go
 
 #Jumping to stage 2 with inferred parameters
-./fs total_fs.cp -Neinf 183.844 -muinf 0.000778592 -makes2 -writes2 -go
+./fs total_fs.cp -Neinf 185.127 -muinf 0.000768334 -makes2 -writes2 -go
 
 #Add ./ to the beginning of commandfile2.txt
 awk '{print "./"$0}' total_fs/commandfiles/commandfile2.txt > total_fs/commandfiles/commandfile2.temp && mv total_fs/commandfiles/commandfile2.temp total_fs/commandfiles/commandfile2.txt
@@ -193,7 +193,7 @@ qsub fsjobs/fsjob_merge2.pbs
 cmdf="fsjobs/fsjob_stage3.pbs"
 echo '#!/bin/bash' > $cmdf 
 echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-echo "#PBS -l walltime=600:00:00" >> $cmdf
+echo "#PBS -l walltime=500:00:00" >> $cmdf
 echo "#PBS -l pmem=128gb" >> $cmdf
 echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
@@ -208,26 +208,13 @@ qsub fsjobs/fsjob_stage3.pbs
 #The first command from the previous command is 
 #./fs -s 1 -X -Y -x 1000000 -y 1000000 -z 100 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc.xml
 
-#Doing this in parallel two independent mcmc runs
-cmdf="fsjobs/fsjob_stage3_1.pbs"
-echo '#!/bin/bash' > $cmdf 
-echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-echo "#PBS -l walltime=700:00:00" >> $cmdf
-echo "#PBS -l pmem=128gb" >> $cmdf
-echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
-echo "#PBS -j oe" >> $cmdf
-echo "" >> $cmdf
-echo "#Moving to directory" >> $cmdf
-echo "cd ~/work/FS" >> $cmdf
-echo "" >> $cmdf
-echo "./fs finestructure -s 1 -X -Y -x 1000000 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1.xml" >> $cmdf
-#run the job
-qsub fsjobs/fsjob_stage3_1.pbs
+#Doing this in parallel two independent mcmc runs, with a burnin and sample 
 
-cmdf="fsjobs/fsjob_stage3_2.pbs"
+#### RUN 1 ####
+cmdf="fsjobs/fsjob_stage3_1_burnin.pbs"
 echo '#!/bin/bash' > $cmdf 
 echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
-echo "#PBS -l walltime=700:00:00" >> $cmdf
+echo "#PBS -l walltime=200:00:00" >> $cmdf
 echo "#PBS -l pmem=128gb" >> $cmdf
 echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
 echo "#PBS -j oe" >> $cmdf
@@ -235,9 +222,62 @@ echo "" >> $cmdf
 echo "#Moving to directory" >> $cmdf
 echo "cd ~/work/FS" >> $cmdf
 echo "" >> $cmdf
-echo "./fs finestructure -s 2 -X -Y -x 1000000 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s2.xml" >> $cmdf
+echo "#Use 1 m iterations as burin" >> $cmdf
+echo "./fs finestructure -s 1 -X -Y -x 1000000 -y 0 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1_burnin.xml" >> $cmdf
 #run the job
-qsub fsjobs/fsjob_stage3_2.pbs
+qsub fsjobs/fsjob_stage3_1_burnin.pbs
+
+### RUN ONLY AFTER THE BURNIN HAS BEEN COMPLETED !!!!! ####
+cmdf="fsjobs/fsjob_stage3_1_sample.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=150:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "#Use 1 m iterations as samples, calling the previous burnin" >> $cmdf
+echo "./fs finestructure -s 1 -X -Y -x 0 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1_burnin.xml total_fs/stage3/total_fs_linked_mcmc_s1.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage3_1_sample.pbs
+
+
+#### RUN 2 ####
+cmdf="fsjobs/fsjob_stage3_2_burnin.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=200:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "#Use 1 m iterations as burin" >> $cmdf
+echo "./fs finestructure -s 2 -X -Y -x 1000000 -y 0 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s2_burnin.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage3_2_burnin.pbs
+
+### RUN ONLY AFTER THE BURNIN HAS BEEN COMPLETED !!!!! ####
+cmdf="fsjobs/fsjob_stage3_2_sample.pbs"
+echo '#!/bin/bash' > $cmdf 
+echo "#PBS -l nodes=1:ppn=1" >> $cmdf 
+echo "#PBS -l walltime=150:00:00" >> $cmdf
+echo "#PBS -l pmem=128gb" >> $cmdf
+echo "#PBS -A jlt22_b_g_sc_default" >> $cmdf
+echo "#PBS -j oe" >> $cmdf
+echo "" >> $cmdf
+echo "#Moving to directory" >> $cmdf
+echo "cd ~/work/FS" >> $cmdf
+echo "" >> $cmdf
+echo "#Use 1 m iterations as samples, calling the previous burnin" >> $cmdf
+echo "./fs finestructure -s 2 -X -Y -x 0 -y 1000000 -z 10000 total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s2_burnin.xml total_fs/stage3/total_fs_linked_mcmc_s2.xml" >> $cmdf
+#run the job
+qsub fsjobs/fsjob_stage3_2_sample.pbs
 
 #In parallel do greedy fs instead
 cmdf="fsjobs/fsjob_greedyfs.pbs"
@@ -269,6 +309,7 @@ echo "#Moving to directory" >> $cmdf
 echo "cd ~/work/FS" >> $cmdf
 echo "" >> $cmdf
 echo "./fs finestructure -s 124 -X -Y -x 100000 -m T -t 100000 -k 2 -T 1 -v total_fs_linked.chunkcounts.out total_fs/stage3/total_fs_linked_mcmc_s1.xml total_fs_linked.tree.xml" >> $cmdf
+#Change with the respective input total_fs/stage3/total_fs_linked_mcmc_s1.xml or total_fs_linked.greedy_outputfile.xml and give a respective output name, greedy or not
 #run the job
 qsub fsjobs/fsjob_stage4.pbs
 
