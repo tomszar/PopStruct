@@ -40,11 +40,13 @@ do
 	echo "#!/bin/bash
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=30:00
-#PBS -l pmem=2gb
+#PBS -l pmem=8gb
 #PBS -A open #jlt22_b_g_sc_default or open
 #PBS -j oe
+
 #Moving to phasing directory
 cd ${thisdir}
+
 #Phasing command
 ./shapeit -check \
 -B ${file} \
@@ -75,8 +77,10 @@ do
 #PBS -l pmem=16gb
 #PBS -A open #jlt22_b_g_sc_default or open
 #PBS -j oe
+
 #Moving to phasing directory
-cd ~/work/phasing
+cd ${thisdir}
+
 #Phasing command
 ./shapeit -B ${file} \
 -M ~/scratch/1000GP_Phase3/genetic_map_chr${i}_combined_b37.txt \
@@ -84,7 +88,7 @@ cd ~/work/phasing
 -O Phased/${file}_phased \
 --output-log ${file}_phased.log \
 --force \
--T 8 " >> Phased/phasing_chr${i}.pbs
+-T 8" >> Phased/phasing_chr${i}.pbs
 
 if [ -e $exclude ]; then
 	echo "$(cat Phased/phasing_chr${i}.pbs) --exclude-snp ${exclude}" > Phased/phasing_chr${i}.pbs
