@@ -13,7 +13,7 @@ from itertools import combinations
 import xml.etree.ElementTree as ET
 
 #Read xml
-tree = ET.parse('total_fs_linked.tree.xml') 
+tree = ET.parse('total_fs/stage4/total_fs_linked.tree.xml') 
 root = tree.getroot() 
 for child in root:
     print(child.tag, child.attrib)
